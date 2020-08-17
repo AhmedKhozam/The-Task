@@ -1,12 +1,18 @@
 package com.ahmedkhozam8085.thetask.view.main;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.view.View;
+import android.widget.AbsListView;
 import android.widget.TextView;
 
 import com.ahmedkhozam8085.thetask.R;
@@ -21,24 +27,29 @@ import java.util.List;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 public class MainActivity extends AppCompatActivity {
-    RecyclerView recyclerView;
+
+    TextView profileNameTV;
+    TextView LocationTV;
+    TextView bioTV;
+    TextView postsTV;
+    TextView followersTV;
+    TextView FollowingTV;
+    RecyclerView imagesRV;
     DataAdapter dataAdapter;
-    TextView posts,followers,following,name,location,bio;
-    CircleImageView profileImage;
+    GridLayoutManager gridLayoutManager;
+    ConstraintLayout constraintLayout;
+    CardView cardView;
+    String TAG = "MainActivity";
+    de.hdodenhof.circleimageview.CircleImageView profile_iv;
     MainActivityViewModel mainActivityViewModel;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        posts = findViewById(R.id.txtPosts);
-        followers = findViewById(R.id.txtfollowers);
-        following = findViewById(R.id.txtFollowing);
-        name = findViewById(R.id.txtFullName);
-        location = findViewById(R.id.txtLocation);
-        bio = findViewById(R.id.txtBio);
-        profileImage = findViewById(R.id.imgProfile);
-        
+
+        constraintLayout = findViewById(R.id.constraintLayout);
+
         mainActivityViewModel= ViewModelProviders.of(this).get(MainActivityViewModel.class);
         mainActivityViewModel.getAllDatafromjson();
         mainActivityViewModel.getProfileDatafromjson();
@@ -61,21 +72,63 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void populateProfileData(Profile profile) {
-        posts.setText(String.valueOf(profile.getData().getCounts().getPosts()));
-        followers.setText(String.valueOf(profile.getData().getCounts().getFollowers()));
-        following.setText(String.valueOf(profile.getData().getCounts().getFollowing()));
-        name.setText(profile.getData().getFullName());
-        location.setText(profile.getData().getLocation());
-        bio.setText(profile.getData().getBio());
-        Glide.with(getApplicationContext()).load(profile.getData().getProfilePicture()).into(profileImage);
+
+
+        profileNameTV = findViewById(R.id.profileName_tv);
+        LocationTV = findViewById(R.id.Location_tv);
+        bioTV = findViewById(R.id.bio_tv);
+        postsTV = findViewById(R.id.posts_tv);
+        followersTV = findViewById(R.id.followers_tv);
+        FollowingTV = findViewById(R.id.following_tv);
+        profile_iv = findViewById(R.id.profile_iv);
+
+        profileNameTV.setText(profile.getData().getFullName());
+        LocationTV.setText(profile.getData().getLocation());
+        bioTV.setText(profile.getData().getBio());
+        postsTV.setText(String.valueOf(profile.getData().getCounts().getPosts()));
+        followersTV.setText(String.valueOf(profile.getData().getCounts().getFollowers()));
+        FollowingTV.setText(String.valueOf(profile.getData().getCounts().getFollowing()));
+
+        Glide.with(this).load(profile.getData().getProfilePicture())
+                .into(profile_iv);
     }
 
     private void  getPopularData(List<DataItem> popularList){
-        recyclerView = findViewById(R.id.recyclerImages);
+        imagesRV = findViewById(R.id.images_rv);
         dataAdapter = new DataAdapter(this, popularList);
-        recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
-        recyclerView.setHasFixedSize(true);
-        recyclerView.setAdapter(dataAdapter);
+        imagesRV.setLayoutManager(new GridLayoutManager(this, 2));
+        imagesRV.setHasFixedSize(true);
+        imagesRV.setAdapter(dataAdapter);
 
+        imagesRV.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+                if (newState == AbsListView.OnScrollListener.SCROLL_STATE_FLING) {
+                    // Do something
+                } else if (newState == AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL) {
+                    // Do something
+                  //  setLayoutVisibilityToGone();
+                } else {
+                    // Do something
+                }
+            }
+
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                if (dy > 0) {
+                    // Scrolling up
+                    setLayoutVisibilityToGone();
+                } else {
+                    // Scrolling down
+                }
+            }
+        });
+
+    }
+
+    private void setLayoutVisibilityToGone() {
+        constraintLayout.setVisibility(View.GONE);
     }
 }
